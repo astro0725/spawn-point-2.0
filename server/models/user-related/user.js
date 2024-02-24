@@ -129,6 +129,50 @@ userSchema.methods.unfollow = async function (userIdToUnfollow) {
   }
 };
 
+// method 2 block
+userSchema.methods.blockUser = async function (userIdToBlock) {
+  try {
+    if (!this.blockedUsers.includes(userIdToBlock)) {
+      this.blockedUsers.push(userIdToBlock);
+      this.following = this.following.filter(followingId => !followingId.equals(userIdToBlock));
+      this.followers = this.followers.filter(followerId => !followerId.equals(userIdToBlock));
+
+      await this.save();
+
+      const userToBlock = await this.model('User').findById(userIdToBlock);
+      if (userToBlock) {
+        userToBlock.followers = userToBlock.followers.filter(followerId => !followerId.equals(this._id));
+        await userToBlock.save();
+      }
+
+      return true; 
+    }
+    return false; 
+
+  } catch (error) {
+    console.error('Error unfollowing user:', error);
+    throw error; 
+  }
+};
+
+
+// method 2 unblock
+userSchema.methods.unblockUser = async function (userIdToUnblock) {
+  try {
+    if (this.blockedUsers.includes(userIdToUnblock)) {
+      this.blockedUsers = this.blockedUsers.filter(blockedId => !blockedId.equals(userIdToUnblock));
+
+      await this.save();
+
+      return true; 
+    }
+    return false; 
+
+  } catch (error) {
+    console.error('Error unfollowing user:', error);
+    throw error; 
+  }
+};
 
 // set up pre-save middleware to create password
 userSchema.pre('save', async function (next) {
