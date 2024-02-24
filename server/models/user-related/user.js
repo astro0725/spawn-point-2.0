@@ -11,6 +11,7 @@ const userSchema = new Schema({
     required: true,
     trim: true, 
     minlength: 3,
+    index: true,
   },
   password: {
     type: String,
@@ -57,10 +58,10 @@ const userSchema = new Schema({
   profileHeader:{
     type: String,
   },
-  showcases: {
+  showcases: [{
     type: ObjectId,
     ref: "showcase",
-  },
+  }],
   following: [{
     type: ObjectId,
     ref: "User",
@@ -75,6 +76,11 @@ const userSchema = new Schema({
   }],
 });
 
+// index user
+userSchema.index({ 'following': 1 }); 
+userSchema.index({ 'followers': 1 });
+userSchema.index({ 'blockedUsers': 1 });
+
 // setup virtual associations
 userSchema.virtual('postCount').get(function() {
   return this.posts.length;
@@ -82,6 +88,18 @@ userSchema.virtual('postCount').get(function() {
 
 userSchema.virtual('guideCount').get(function() {
   return this.guides.length;
+});
+
+userSchema.virtual('blockedCount').get(function() {
+  return this.blockedUsers.length;
+});
+
+userSchema.virtual('followingCount').get(function() {
+  return this.following.length;
+});
+
+userSchema.virtual('followerCount').get(function() {
+  return this.followers.length;
 });
 
 // method 2 follow 
@@ -101,7 +119,7 @@ userSchema.methods.follow = async function (userIdToFollow) {
     }
     return false; 
   } catch (error) {
-    console.error('Error unfollowing user:', error);
+    console.error('Error following user:', error);
     throw error; 
   }
 };
@@ -150,7 +168,7 @@ userSchema.methods.blockUser = async function (userIdToBlock) {
     return false; 
 
   } catch (error) {
-    console.error('Error unfollowing user:', error);
+    console.error('Error blocking user:', error);
     throw error; 
   }
 };
@@ -169,7 +187,7 @@ userSchema.methods.unblockUser = async function (userIdToUnblock) {
     return false; 
 
   } catch (error) {
-    console.error('Error unfollowing user:', error);
+    console.error('Error unblocking user:', error);
     throw error; 
   }
 };
