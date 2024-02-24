@@ -16,7 +16,7 @@ const userSchema = new Schema({
     type: String,
     required: true,
     trim: true, 
-    minlength: 5,
+    minlength: 8,
   },
   email: {
     type: String,
@@ -76,14 +76,6 @@ const userSchema = new Schema({
 });
 
 // setup virtual associations
-userSchema.virtual('friendCount').get(function() {
-  return this.friends.length;
-});
-
-userSchema.virtual('blockedCount').get(function() {
-  return this.blocked.length;
-});
-
 userSchema.virtual('postCount').get(function() {
   return this.posts.length;
 });
@@ -94,20 +86,49 @@ userSchema.virtual('guideCount').get(function() {
 
 // method 2 follow 
 userSchema.methods.follow = async function (userIdToFollow) {
-  if (!this.following.includes(userIdToFollow)) {
-    this.following.push(userIdToFollow);
-    await this.save();
+  try {
+    if (!this.following.includes(userIdToFollow)) {
+      this.following.push(userIdToFollow);
+      await this.save();
 
-    const userToFollow = await this.model('User').findById(userIdToFollow);
-    if (!userToFollow.followers.includes(this._id)) {
-      userToFollow.followers.push(this._id);
-      await userToFollow.save();
+      const userToFollow = await this.model('User').findById(userIdToFollow);
+      if (!userToFollow.followers.includes(this._id)) {
+        userToFollow.followers.push(this._id);
+        await userToFollow.save();
+      }
+
+      return true;
     }
-
-    return true;
+    return false; 
+  } catch (error) {
+    console.error('Error unfollowing user:', error);
+    throw error; 
   }
-  return false; 
 };
+
+// method 2 unfollow
+userSchema.methods.unfollow = async function (userIdToUnfollow) {
+  try {
+    if (this.following.includes(userIdToUnfollow)) {
+      this.following = this.following.filter(followingId => !followingId.equals(userIdToUnfollow));
+      await this.save();
+
+      const userToUnfollow = await this.model('User').findById(userIdToUnfollow);
+      if (userToUnfollow) {
+        userToUnfollow.followers = userToUnfollow.followers.filter(followerId => !followerId.equals(this._id));
+        await userToUnfollow.save();
+      }
+
+      return true; 
+    }
+    return false; 
+
+  } catch (error) {
+    console.error('Error unfollowing user:', error);
+    throw error; 
+  }
+};
+
 
 // set up pre-save middleware to create password
 userSchema.pre('save', async function (next) {
