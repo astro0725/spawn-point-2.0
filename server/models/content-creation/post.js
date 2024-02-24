@@ -31,4 +31,8 @@ const postSchema = new Schema({
   }],
 }, { timestamps: true });
 
+postSchema.virtual('replyCount').get(function() {
+  return this.reply.length;
+});
+
 module.exports = mongoose.model('post', postSchema);
