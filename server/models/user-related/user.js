@@ -74,6 +74,10 @@ const userSchema = new Schema({
     type: ObjectId,
     ref: "User",
   }],
+  friends: [{
+    type: ObjectId,
+    ref: "User",
+  }],
 });
 
 // index user
@@ -100,6 +104,10 @@ userSchema.virtual('followingCount').get(function() {
 
 userSchema.virtual('followerCount').get(function() {
   return this.followers.length;
+});
+
+userSchema.virtual('friendCount').get(function() {
+  return this.friends.length;
 });
 
 // method 2 follow 
@@ -190,6 +198,14 @@ userSchema.methods.unblockUser = async function (userIdToUnblock) {
     console.error('Error unblocking user:', error);
     throw error; 
   }
+};
+
+// method 2 check mutual following:
+userSchema.methods.isFriend = async function (otherUserId) {
+  const isFollowing = this.following.some(followingId => followingId.equals(otherUserId));
+  const isFollower = this.followers.some(followerId => followerId.equals(otherUserId));
+
+  return isFollowing && isFollower;
 };
 
 // set up pre-save middleware to create password
