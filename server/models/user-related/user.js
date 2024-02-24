@@ -64,19 +64,19 @@ const userSchema = new Schema({
   }],
   following: [{
     type: ObjectId,
-    ref: "User",
+    ref: "user",
   }],
   followers: [{
     type: ObjectId,
-    ref: "User",
+    ref: "user",
   }],
-  blockedUsers: [{
+  blockedusers: [{
     type: ObjectId,
-    ref: "User",
+    ref: "user",
   }],
   friends: [{
     type: ObjectId,
-    ref: "User",
+    ref: "user",
   }],
 });
 
@@ -108,6 +108,13 @@ userSchema.virtual('followerCount').get(function() {
 
 userSchema.virtual('friendCount').get(function() {
   return this.friends.length;
+});
+
+userSchema.virtual('showcase', {
+  ref: 'showcase',
+  localField: '_id',
+  foreignField: 'userId',
+  justOne: false
 });
 
 // method 2 follow 

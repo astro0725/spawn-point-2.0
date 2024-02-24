@@ -1,6 +1,4 @@
 import User from './user-related/user';
-import Friend from './user-related/sub/friend';
-import Block from './user-related/sub/block';
 
 import Showcase from './user-related/profile/showcase';
 import Games from './user-related/profile/games';
@@ -18,8 +16,6 @@ import Message from './content-creation/sub/message';
 
 module.exports = {
   User,
-  Friend,
-  Block,
   Showcase,
   Games,
   Achievements,
