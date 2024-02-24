@@ -70,11 +70,29 @@ const userSchema = new Schema({
       ref: "block",
     },
   ],
-  showcase: {
+  showcases: {
     type: ObjectId,
     ref: "showcase",
   },
 });
+
+// setup virtual associations
+userSchema.virtual('friendCount').get(function() {
+  return this.friends.length;
+});
+
+userSchema.virtual('blockedCount').get(function() {
+  return this.blocked.length;
+});
+
+userSchema.virtual('postCount').get(function() {
+  return this.posts.length;
+});
+
+userSchema.virtual('guideCount').get(function() {
+  return this.guides.length;
+});
+
 
 // set up pre-save middleware to create password
 userSchema.pre('save', async function (next) {
