@@ -118,7 +118,16 @@ userSchema.methods.follow = async function (userIdToFollow) {
       await this.save();
 
       const userToFollow = await this.model('User').findById(userIdToFollow);
-      if (!userToFollow.followers.includes(this._id)) {
+      if (userToFollow.followers.includes(this._id)) {
+        if (!this.friends.includes(userIdToFollow)) {
+          this.friends.push(userIdToFollow);
+          await this.save();
+        }
+        if (!userToFollow.friends.includes(this._id)) {
+          userToFollow.friends.push(this._id);
+          await userToFollow.save();
+        }
+      } else if (!userToFollow.followers.includes(this._id)) {
         userToFollow.followers.push(this._id);
         await userToFollow.save();
       }
@@ -137,7 +146,6 @@ userSchema.methods.unfollow = async function (userIdToUnfollow) {
   try {
     if (this.following.includes(userIdToUnfollow)) {
       this.following = this.following.filter(followingId => !followingId.equals(userIdToUnfollow));
-      await this.save();
 
       const userToUnfollow = await this.model('User').findById(userIdToUnfollow);
       if (userToUnfollow) {
@@ -145,9 +153,19 @@ userSchema.methods.unfollow = async function (userIdToUnfollow) {
         await userToUnfollow.save();
       }
 
+      if (this.friends.includes(userIdToUnfollow)) {
+        this.friends = this.friends.filter(friendId => !friendId.equals(userIdToUnfollow));
+        await this.save();
+
+        if (userToUnfollow.friends.includes(this._id)) {
+          userToUnfollow.friends = userToUnfollow.friends.filter(friendId => !friendId.equals(this._id));
+          await userToUnfollow.save();
+        }
+      }
+
       return true; 
     }
-    return false; 
+    return false;
 
   } catch (error) {
     console.error('Error unfollowing user:', error);
@@ -201,11 +219,8 @@ userSchema.methods.unblockUser = async function (userIdToUnblock) {
 };
 
 // method 2 check mutual following:
-userSchema.methods.isFriend = async function (otherUserId) {
-  const isFollowing = this.following.some(followingId => followingId.equals(otherUserId));
-  const isFollower = this.followers.some(followerId => followerId.equals(otherUserId));
-
-  return isFollowing && isFollower;
+userSchema.methods.isFriend = function (otherUserId) {
+  return this.friends.some(friendId => friendId.equals(otherUserId));
 };
 
 // set up pre-save middleware to create password
