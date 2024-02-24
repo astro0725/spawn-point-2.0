@@ -12,9 +12,9 @@ const showcaseSchema = new Schema({
     type: ObjectId,
     ref: 'games', 
   }],
-  achievements: [{
+  socials: [{
     type: ObjectId,
-    ref: 'achievements', 
+    ref: 'socials', 
   }],
   connections: [{
     type: ObjectId,
@@ -30,8 +30,8 @@ showcaseSchema.virtual('gameCount').get(function() {
   return this.games.length;
 });
 
-showcaseSchema.virtual('achievmentCount').get(function() {
-  return this.achievments.length;
+showcaseSchema.virtual('socialCount').get(function() {
+  return this.socials.length;
 });
 
 showcaseSchema.virtual('connectionsCount').get(function() {

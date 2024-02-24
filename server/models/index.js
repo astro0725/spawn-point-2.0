@@ -2,7 +2,7 @@ import User from './user-related/user';
 
 import Showcase from './user-related/profile/showcase';
 import Games from './user-related/profile/games';
-import Achievements from './user-related/profile/achievements';
+import Socials from './user-related/profile/socials';
 import Connections from './user-related/profile/connections';
 
 import Post from './content-creation/post';
@@ -18,7 +18,7 @@ module.exports = {
   User,
   Showcase,
   Games,
-  Achievements,
+  Socials,
   Connections,
   Post,
   Guide,
