@@ -57,22 +57,22 @@ const userSchema = new Schema({
   profileHeader:{
     type: String,
   },
-  friends: [
-    {
-      type: ObjectId,
-      ref: "friend",
-    },
-  ],
-  blocked: [
-    {
-      type: ObjectId,
-      ref: "block",
-    },
-  ],
   showcases: {
     type: ObjectId,
     ref: "showcase",
   },
+  following: [{
+    type: ObjectId,
+    ref: "User",
+  }],
+  followers: [{
+    type: ObjectId,
+    ref: "User",
+  }],
+  blockedUsers: [{
+    type: ObjectId,
+    ref: "User",
+  }],
 });
 
 // setup virtual associations
@@ -92,6 +92,22 @@ userSchema.virtual('guideCount').get(function() {
   return this.guides.length;
 });
 
+// method 2 follow 
+userSchema.methods.follow = async function (userIdToFollow) {
+  if (!this.following.includes(userIdToFollow)) {
+    this.following.push(userIdToFollow);
+    await this.save();
+
+    const userToFollow = await this.model('User').findById(userIdToFollow);
+    if (!userToFollow.followers.includes(this._id)) {
+      userToFollow.followers.push(this._id);
+      await userToFollow.save();
+    }
+
+    return true;
+  }
+  return false; 
+};
 
 // set up pre-save middleware to create password
 userSchema.pre('save', async function (next) {
