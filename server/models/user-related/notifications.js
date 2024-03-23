@@ -5,7 +5,7 @@ const { Schema } = mongoose;
 const notificationSchema = new Schema({
   type: {
     type: String,
-    enum: ['NEW_FOLLOWER', 'NEW_MESSAGE', 'CONTENT_LIKE', 'COMMENT_ON_POST'],
+    enum: ['new_follower', 'new_message', 'content_like', 'comment_on_post'],
     required: true,
   },
   message: {
@@ -25,7 +25,7 @@ const notificationSchema = new Schema({
   onModel: {
     type: String,
     required: false,
-    enum: ['Post', 'Guide', 'Comment'] 
+    enum: ['post', 'guide', 'comment'] 
   },
   createdAt: {
     type: Date,
