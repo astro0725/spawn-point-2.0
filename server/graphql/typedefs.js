@@ -4,12 +4,16 @@ const typeDefs = gql`
 type Query {
   user(id: ID!): User
   users: [User!]!
+  
+  getSocialsByUserId(userId: ID!): Socials
 }
 
 type Mutation {
   createUser(username: String!, password: String!, email: String!): User
   followUser(userId: ID!, followUserId: ID!): User
   unfollowUser(userId: ID!, unfollowUserId: ID!): User
+
+  updateSocials(userId: ID!, twitch: String, tiktok: String, facebook: String, instagram: String, twitter: String): Socials
 }
 
 type User {
@@ -35,6 +39,17 @@ type User {
   followingCount: Int!
   followerCount: Int!
   friendCount: Int!
+}
+
+type Socials {
+  id: ID!
+  twitch: String
+  tiktok: String
+  facebook: String
+  instagram: String
+  twitter: String
+  createdAt: String
+  updatedAt: String
 }
 `;
 
