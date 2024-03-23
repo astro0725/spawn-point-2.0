@@ -28,6 +28,7 @@ const guideSchema = new Schema({
     ref: 'User',
   }],
   comments: [commentSchema],
+  reactions: [reactionSchema],
   tags: [{
     type: String,
     trim: true,

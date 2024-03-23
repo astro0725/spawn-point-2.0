@@ -25,6 +25,7 @@ const postSchema = new Schema({
     ref: 'User',
   }],
   reply: [replySchema],
+  reactions: [reactionSchema],
   tags: [{
     type: String,
     trim: true,
