@@ -3,25 +3,15 @@ const { ObjectId } = mongoose.Types;
 const { Schema } = mongoose;
 
 const reactionSchema = new Schema({
-  comment: {
+  contentId: {
     type: ObjectId,
-    ref: 'comment',  
     required: true,
+    refPath: 'contentType'
   },
-  reply: {
-    type: ObjectId,
-    ref:'reply',  
+  contentType: {
+    type: String,
     required: true,
-  },
-  post: {
-    type: ObjectId,
-    ref: 'post',  
-    required: true,
-  },
-  guide: {
-    type: ObjectId,
-    ref: 'guide',  
-    required: true,
+    enum: ['comment', 'reply', 'post', 'guide']
   },
   user: {
     type: ObjectId,
@@ -32,7 +22,7 @@ const reactionSchema = new Schema({
     type: String, 
     required: true,
   },
-}, { timestamps: true});
+}, { timestamps: true });
 
 reactionSchema.index({
   contentId: 1, 
