@@ -16,6 +16,9 @@ type Query {
 
   post(id: ID!): Post
   posts: [Post!]!
+
+  guide(id: ID!): Guide
+  guides: [Guide!]!
 }
 
 type Mutation {
@@ -34,6 +37,10 @@ type Mutation {
 
   createPost(content: String!, image: [InputImage], authorId: ID!, tags: [String]): Post
   likePost(postId: ID!, userId: ID!): Post
+
+  createGuide(content: String!, images: [InputImage], authorId: ID!, tags: [String]): Guide
+  likeGuide(guideId: ID!, userId: ID!): Guide
+  dislikeGuide(guideId: ID!, userId: ID!): Guide
 }
 
 input InputImage {
@@ -122,6 +129,21 @@ type Post {
   createdAt: String!
   updatedAt: String!
   replyCount: Int!
+}
+
+type Guide {
+  id: ID!
+  content: String!
+  images: [Image!]
+  author: User!
+  likes: [User!]!
+  dislikes: [User!]!
+  comments: [Comment!]!
+  reactions: [Reaction!]!
+  tags: [String!]!
+  createdAt: String!
+  updatedAt: String!
+  commentCount: Int!
 }
 
 type Image {
