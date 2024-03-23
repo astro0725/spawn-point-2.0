@@ -21,6 +21,9 @@ type Query {
   guides: [Guide!]!
 
   reactions(contentId: ID!, contentType: ContentType!): [Reaction!]!
+
+  comment(id: ID!): Comment
+  comments: [Comment!]!
 }
 
 type Mutation {
@@ -45,6 +48,8 @@ type Mutation {
   dislikeGuide(guideId: ID!, userId: ID!): Guide
 
   createReply(content: String!, authorId: ID!): Reply
+
+  createComment(content: String!, authorId: ID!): Comment
 
   addReaction(contentId: ID!, contentType: ContentType!, userId: ID!, emoji: String!): Reaction
 }
@@ -164,6 +169,14 @@ type Image {
 }
 
 type Reply {
+  id: ID!
+  content: String!
+  author: User!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Comment {
   id: ID!
   content: String!
   author: User!
