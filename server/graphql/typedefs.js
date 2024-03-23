@@ -13,6 +13,9 @@ type Query {
   getSocialsByUserId(userId: ID!): Socials
 
   showcaseByUserId(userId: ID!): Showcase
+
+  post(id: ID!): Post
+  posts: [Post!]!
 }
 
 type Mutation {
@@ -28,6 +31,13 @@ type Mutation {
   updateSocials(userId: ID!, twitch: String, tiktok: String, facebook: String, instagram: String, twitter: String): Socials
 
   updateShowcase(userId: ID!, games: [ID!], socials: [ID!], connections: [ID!], isVisible: Boolean): Showcase
+
+  createPost(content: String!, image: [InputImage], authorId: ID!, tags: [String]): Post
+  likePost(postId: ID!, userId: ID!): Post
+}
+
+input InputImage {
+  url: String!
 }
 
 type Game {
@@ -98,6 +108,24 @@ type Showcase {
   gameCount: Int!
   socialCount: Int!
   connectionsCount: Int!
+}
+
+type Post {
+  id: ID!
+  content: String!
+  image: [Image!]
+  author: User!
+  likes: [User!]!
+  reply: [Reply!]!
+  reactions: [Reaction!]!
+  tags: [String!]!
+  createdAt: String!
+  updatedAt: String!
+  replyCount: Int!
+}
+
+type Image {
+  url: String!
 }
 `;
 
