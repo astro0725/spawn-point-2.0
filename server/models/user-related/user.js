@@ -49,12 +49,6 @@ const userSchema = new Schema({
       ref: "guide",
     },
   ],
-  chatrooms: [
-    {
-      type: ObjectId,
-      ref: "chatroom",
-    },
-  ],
   profileHeader:{
     type: String,
   },

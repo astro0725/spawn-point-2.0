@@ -7,7 +7,6 @@ import Connections from './user-related/profile/connections';
 
 import Post from './content-creation/post';
 import Guide from './content-creation/guide';
-import Chatroom from './content-creation/chatroom';
 
 import Reaction from './content-creation/sub/reaction';
 import Reply from './content-creation/sub/reply';
@@ -22,7 +21,6 @@ module.exports = {
   Connections,
   Post,
   Guide,
-  Chatroom,
   Reaction,
   Reply,
   Comment,
