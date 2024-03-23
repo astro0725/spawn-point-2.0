@@ -29,10 +29,12 @@ type Query {
 type Mutation {
   addGame(title: String!, splashArt: String!): Game
   updateGame(id: ID!, title: String, splashArt: String): Game
+  deleteGame(id: ID!): Game
 
   createUser(username: String!, password: String!, email: String!): User
   followUser(userId: ID!, followUserId: ID!): User
   unfollowUser(userId: ID!, unfollowUserId: ID!): User
+  deleteUser(id: ID!): User
 
   updateConnections(userId: ID!, steamId: String, playstationId: String, riotId: String, xboxId: String, battlenetId: String, epicGamesId: String): Connections
 
@@ -42,16 +44,21 @@ type Mutation {
 
   createPost(content: String!, image: [InputImage], authorId: ID!, tags: [String]): Post
   likePost(postId: ID!, userId: ID!): Post
+  deletePost(postId: ID!): Post
 
   createGuide(content: String!, images: [InputImage], authorId: ID!, tags: [String]): Guide
   likeGuide(guideId: ID!, userId: ID!): Guide
   dislikeGuide(guideId: ID!, userId: ID!): Guide
+  deleteGuide(guideId: ID!): Guide
 
   createReply(content: String!, authorId: ID!): Reply
+  deleteReply(replyId: ID!): Reply
 
   createComment(content: String!, authorId: ID!): Comment
+  deleteComment(commentId: ID!): Comment
 
   addReaction(contentId: ID!, contentType: ContentType!, userId: ID!, emoji: String!): Reaction
+  removeReaction(contentId: ID!, contentType: ContentType!, userId: ID!, emoji: String!): Reaction
 }
 
 input InputImage {
