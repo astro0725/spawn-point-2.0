@@ -35,6 +35,7 @@ type Mutation {
   deleteGame(id: ID!): Game
 
   createUser(username: String!, password: String!, email: String!): User
+  updateProfileImage(userId: ID!, newImage: Upload!): User
   followUser(userId: ID!, followUserId: ID!): User
   unfollowUser(userId: ID!, unfollowUserId: ID!): User
   deleteUser(id: ID!): User
@@ -47,11 +48,11 @@ type Mutation {
 
   notifications(userId: ID!): [Notification!]!
 
-  createPost(content: String!, image: [InputImage], authorId: ID!, tags: [String]): Post
+  createPost(content: String!, image: Upload,, authorId: ID!, tags: [String]): Post
   likePost(postId: ID!, userId: ID!): Post
   deletePost(postId: ID!): Post
 
-  createGuide(content: String!, images: [InputImage], authorId: ID!, tags: [String]): Guide
+  createGuide(content: String!, images: Upload, authorId: ID!, tags: [String]): Guide
   likeGuide(guideId: ID!, userId: ID!): Guide
   dislikeGuide(guideId: ID!, userId: ID!): Guide
   deleteGuide(guideId: ID!): Guide
@@ -68,10 +69,6 @@ type Mutation {
 
 type Subscription {
   notificationReceived: Notification!
-}
-
-input InputImage {
-  url: String!
 }
 
 input UserFilter {
