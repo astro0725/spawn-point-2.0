@@ -7,6 +7,7 @@ type Query {
 
   user(id: ID!): User
   users: [User!]!
+  users(filter: UserFilter): [User!]!
 
   connectionsByUserId(userId: ID!): Connections
 
@@ -16,9 +17,11 @@ type Query {
 
   post(id: ID!): Post
   posts: [Post!]!
+  posts(page: Int, limit: Int, tag: String, keyword: String): [Post!]!
 
   guide(id: ID!): Guide
   guides: [Guide!]!
+  guides(page: Int, limit: Int, tag: String, keyword: String): [Guide!]!
 
   reactions(contentId: ID!, contentType: ContentType!): [Reaction!]!
 
@@ -63,6 +66,12 @@ type Mutation {
 
 input InputImage {
   url: String!
+}
+
+input UserFilter {
+  username: String
+  profileImage: String
+  name: String
 }
 
 enum ContentType {
