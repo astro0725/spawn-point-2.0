@@ -41,6 +41,8 @@ type Mutation {
   createGuide(content: String!, images: [InputImage], authorId: ID!, tags: [String]): Guide
   likeGuide(guideId: ID!, userId: ID!): Guide
   dislikeGuide(guideId: ID!, userId: ID!): Guide
+
+  createReply(content: String!, authorId: ID!): Reply
 }
 
 input InputImage {
@@ -148,6 +150,14 @@ type Guide {
 
 type Image {
   url: String!
+}
+
+type Reply {
+  id: ID!
+  content: String!
+  author: User!
+  createdAt: String!
+  updatedAt: String!
 }
 `;
 
