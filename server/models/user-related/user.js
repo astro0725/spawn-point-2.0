@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 const { ObjectId } = mongoose.Types;
 
 const { Schema } = mongoose;
-const bcrypt = require("bcryptjs");
+const bcrypt = require('bcryptjs');
 
 const userSchema = new Schema({
   username: {
@@ -40,13 +40,13 @@ const userSchema = new Schema({
   posts: [
     {
       type: ObjectId,
-      ref: "post",
+      ref: 'post',
     },
   ],
   guides: [
     {
       type: ObjectId,
-      ref: "guide",
+      ref: 'guide',
     },
   ],
   profileHeader:{
@@ -54,23 +54,23 @@ const userSchema = new Schema({
   },
   showcases: [{
     type: ObjectId,
-    ref: "showcase",
+    ref: 'showcase',
   }],
   following: [{
     type: ObjectId,
-    ref: "user",
+    ref: 'user',
   }],
   followers: [{
     type: ObjectId,
-    ref: "user",
+    ref: 'user',
   }],
   blockedusers: [{
     type: ObjectId,
-    ref: "user",
+    ref: 'user',
   }],
   friends: [{
     type: ObjectId,
-    ref: "user",
+    ref: 'user',
   }],
 });
 
@@ -238,4 +238,4 @@ userSchema.methods.isCorrectPassword = async function (password) {
   return bcrypt.compare(password, this.password);
 };
 
-module.exports = mongoose.model("user", userSchema);
+module.exports = mongoose.model('user', userSchema);
