@@ -45,6 +45,8 @@ type Mutation {
 
   updateShowcase(userId: ID!, games: [ID!], socials: [ID!], connections: [ID!], isVisible: Boolean): Showcase
 
+  notifications(userId: ID!): [Notification!]!
+
   createPost(content: String!, image: [InputImage], authorId: ID!, tags: [String]): Post
   likePost(postId: ID!, userId: ID!): Post
   deletePost(postId: ID!): Post
@@ -64,6 +66,10 @@ type Mutation {
   removeReaction(contentId: ID!, contentType: ContentType!, userId: ID!, emoji: String!): Reaction
 }
 
+type Subscription {
+  notificationReceived: Notification!
+}
+
 input InputImage {
   url: String!
 }
@@ -79,6 +85,13 @@ enum ContentType {
   reply
   post
   guide
+}
+
+enum NotificationType {
+  new_follower
+  new_message
+  content_like
+  comment_on_post
 }
 
 type Game {
@@ -149,6 +162,15 @@ type Showcase {
   gameCount: Int!
   socialCount: Int!
   connectionsCount: Int!
+}
+
+type Notification {
+  id: ID!
+  type: NotificationType!
+  message: String!
+  user: User!
+  relatedContentId: ID
+  createdAt: String!
 }
 
 type Post {
