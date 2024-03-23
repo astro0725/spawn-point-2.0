@@ -11,6 +11,8 @@ type Query {
   connectionsByUserId(userId: ID!): Connections
 
   getSocialsByUserId(userId: ID!): Socials
+
+  showcaseByUserId(userId: ID!): Showcase
 }
 
 type Mutation {
@@ -24,6 +26,8 @@ type Mutation {
   updateConnections(userId: ID!, steamId: String, playstationId: String, riotId: String, xboxId: String, battlenetId: String, epicGamesId: String): Connections
 
   updateSocials(userId: ID!, twitch: String, tiktok: String, facebook: String, instagram: String, twitter: String): Socials
+
+  updateShowcase(userId: ID!, games: [ID!], socials: [ID!], connections: [ID!], isVisible: Boolean): Showcase
 }
 
 type Game {
@@ -80,6 +84,20 @@ type Socials {
   twitter: String
   createdAt: String
   updatedAt: String
+}
+
+type Showcase {
+  id: ID!
+  userId: User!
+  games: [Game!]!
+  socials: [Socials!]!
+  connections: [Connection!]!
+  isVisible: Boolean!
+  createdAt: String!
+  updatedAt: String!
+  gameCount: Int!
+  socialCount: Int!
+  connectionsCount: Int!
 }
 `;
 
