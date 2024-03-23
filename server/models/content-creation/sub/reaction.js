@@ -3,9 +3,24 @@ const { ObjectId } = mongoose.Types;
 const { Schema } = mongoose;
 
 const reactionSchema = new Schema({
-  message: {
+  comment: {
     type: ObjectId,
-    ref: 'Message', 
+    ref: 'comment',  
+    required: true,
+  },
+  reply: {
+    type: ObjectId,
+    ref:'reply',  
+    required: true,
+  },
+  post: {
+    type: ObjectId,
+    ref: 'post',  
+    required: true,
+  },
+  guide: {
+    type: ObjectId,
+    ref: 'guide',  
     required: true,
   },
   user: {
@@ -19,6 +34,15 @@ const reactionSchema = new Schema({
   },
 }, { timestamps: true});
 
-reactionSchema.index({ message: 1, user: 1, emoji: 1 }, { unique: true });
+reactionSchema.index({
+  contentId: 1, 
+  user: 1, 
+  emoji: 1
+}, {
+  unique: true,
+  partialFilterExpression: {
+    contentId: { $exists: true }
+  }
+});
 
 module.exports = mongoose.model('reaction', reactionSchema);
