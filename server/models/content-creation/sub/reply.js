@@ -11,7 +11,7 @@ const replySchema = new Schema({
   },
   author: {
     type: ObjectId,
-    ref: 'User',
+    ref: 'user',
     required: true,
   },
 }, { timestamps: true });

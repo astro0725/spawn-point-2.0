@@ -14,7 +14,7 @@ const notificationSchema = new Schema({
   },
   userId: {
     type: ObjectId,
-    ref: 'User',
+    ref: 'user',
     required: true,
   },
   relatedContentId: {
