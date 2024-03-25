@@ -109,6 +109,26 @@ const resolvers = {
       await db.User.findByIdAndDelete(userId);
       return { success: true, message: 'User successfully deleted' };
     },
+    // create a new notification
+    createNotification: async (_, { type, message, userId, relatedContentId, onModel }) => {
+      try {
+      // create a new notification object
+      const newNotification = new Notification({
+        type,
+        message,
+        userId,
+        relatedContentId,
+        onModel
+      });
+      // save the new notification to the database
+      await newNotification.save();
+      // return the newly created notification
+      return newNotification;
+      } catch (error) {
+      console.error('Error creating notification:', error);
+      throw error;
+      }
+    },
   }
 };
 

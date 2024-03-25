@@ -46,7 +46,7 @@ type Mutation {
 
   updateShowcase(userId: ID!, games: [ID!], socials: [ID!], connections: [ID!], isVisible: Boolean): Showcase
 
-  notifications(userId: ID!): [Notification!]!
+  createNotification(type: NotificationType!, message: String!, userId: ID!, relatedContentId: ID, onModel: String): Notification
 
   createPost(content: String!, image: Upload,, authorId: ID!, tags: [String]): Post
   likePost(postId: ID!, userId: ID!): Post
