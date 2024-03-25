@@ -17,12 +17,12 @@ const postSchema = new Schema({
   }],
   author: {
     type: ObjectId,
-    ref: 'User',
+    ref: 'user',
     required: true,
   },
   likes: [{
     type: ObjectId,
-    ref: 'User',
+    ref: 'user',
   }],
   reply: [replySchema],
   reactions: [reactionSchema],
@@ -30,6 +30,11 @@ const postSchema = new Schema({
     type: String,
     trim: true,
   }],
+  game: {
+    type: ObjectId,
+    ref: 'game', 
+    required: false,
+  },
 }, { timestamps: true });
 
 postSchema.virtual('replyCount').get(function() {

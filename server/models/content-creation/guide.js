@@ -16,16 +16,16 @@ const guideSchema = new Schema({
   }],
   author: {
     type: ObjectId,
-    ref: 'User',
+    ref: 'user',
     required: true,
   },
   likes: [{
     type: ObjectId,
-    ref: 'User',
+    ref: 'user',
   }],
   dislikes: [{
     type: ObjectId,
-    ref: 'User',
+    ref: 'user',
   }],
   comments: [commentSchema],
   reactions: [reactionSchema],
@@ -33,6 +33,11 @@ const guideSchema = new Schema({
     type: String,
     trim: true,
   }],
+  game: {
+    type: ObjectId,
+    ref: 'game',
+    required: false,
+  }
 }, { timestamps: true });
 
 guideSchema.virtual('commentCount').get(function() {

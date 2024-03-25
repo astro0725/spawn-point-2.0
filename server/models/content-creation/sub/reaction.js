@@ -15,7 +15,7 @@ const reactionSchema = new Schema({
   },
   user: {
     type: ObjectId,
-    ref: 'User', 
+    ref: 'user', 
     required: true,
   },
   emoji: {
