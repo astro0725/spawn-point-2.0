@@ -41,6 +41,61 @@ const resolvers = {
       const token = signToken(newUser);
       return { token, user: newUser };
     },
+    // change email of authenticated user
+    changeEmail: async (_, { userId, newEmail }, context) => {
+      // checks if the data to be changed belongs to the logged in user
+      if (!context.user || context.user._id !== userId) {
+        throw new Error('Unauthorized');
+      }
+      const emailExists = await db.User.findOne({ email: newEmail });
+      if (emailExists) {
+        return { success: false, message: 'Email already in use' };
+      }
+      const user = await db.User.findById(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+      user.email = newEmail;
+      await user.save();
+      return { success: true, message: 'Email successfully changed' };
+    },
+    // change username of authenticated user
+    changeUsername: async (_, { userId, newUsername }, context) => {
+      // checks if the data to be changed belongs to the logged in user
+      if (!context.user || context.user._id !== userId) {
+        throw new Error('Unauthorized');
+      }
+      const usernameExists = await db.User.findOne({ username: newUsername });
+      if (usernameExists) {
+        return { success: false, message: 'Username already in use' };
+      }
+      const user = await db.User.findById(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+      user.username = newUsername;
+      await user.save();
+      return { success: true, message: 'Username successfully changed' };
+    },
+    // change password of authenticated user 
+    changePassword: async (_, { userId, oldPassword, newPassword }, context) => {
+      // checks if the data to be changed belongs to the logged in user
+      if (!context.user || context.user._id !== userId) {
+        return { success: false, message: 'Unauthorized' };
+      }
+      const user = await db.User.findById(userId);
+      if (!user) {
+        return { success: false, message: 'User not found' };
+      }
+      const isMatch = await bcrypt.compare(oldPassword, user.password);
+      if (!isMatch) {
+        return { success: false, message: 'Old password is incorrect' };
+      }
+      const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+      user.password = hashedPassword;
+      await user.save();
+      return { success: true, message: 'Password successfully changed' };
+    },
   }
 };
 
