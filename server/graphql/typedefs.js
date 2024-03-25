@@ -2,11 +2,11 @@ const { gql } = require("apollo-server-express");
 
 const typeDefs = gql`
 type Query {
-  game(id: ID!): Game
-  games: [Game!]!
+  gameById(id: ID!): Game
+  allGames: [Game!]!
 
-  user(id: ID!): User
-  users: [User!]!
+  userById(id: ID!): User
+  allUsers: [User!]!
   users(filter: UserFilter): [User!]!
 
   connectionsByUserId(userId: ID!): Connections
@@ -15,17 +15,17 @@ type Query {
 
   showcaseByUserId(userId: ID!): Showcase
 
-  post(id: ID!): Post
-  posts: [Post!]!
-  posts(page: Int, limit: Int, tag: String, keyword: String): [Post!]!
+  postById(id: ID!): Post
+  allPosts: [Post!]!
+  postById(page: Int, limit: Int, tag: String, keyword: String): [Post!]!
 
-  guide(id: ID!): Guide
-  guides: [Guide!]!
-  guides(page: Int, limit: Int, tag: String, keyword: String): [Guide!]!
+  guideById(id: ID!): Guide
+  allGuides: [Guide!]!
+  guideSort(page: Int, limit: Int, tag: String, keyword: String): [Guide!]!
 
   reactions(contentId: ID!, contentType: ContentType!): [Reaction!]!
 
-  comment(id: ID!): Comment
+  commentById(id: ID!): Comment
   comments: [Comment!]!
 }
 
@@ -73,7 +73,6 @@ type Subscription {
 
 input UserFilter {
   username: String
-  profileImage: String
   name: String
 }
 
