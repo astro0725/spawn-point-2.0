@@ -7,7 +7,7 @@ type Query {
 
   userById(id: ID!): User
   allUsers: [User!]!
-  users(filter: UserFilter): [User!]!
+  userSort(filter: UserFilter): [User!]!
 
   connectionsByUserId(userId: ID!): Connections
 
