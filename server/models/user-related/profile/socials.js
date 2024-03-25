@@ -1,37 +1,32 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-const connectionsSchema = new Schema({
-  steamId: {
+const socialsSchema = new Schema({
+  twitch: {
     type: String,
     trim: true,
     default: '',
   },
-  playstationId: {
+  tiktok: {
     type: String,
     trim: true,
     default: '',
   },
-  riotId: {
+  facebook: {
     type: String,
     trim: true,
     default: '',
   },
-  xboxId: {
+  instagram: {
     type: String,
     trim: true,
     default: '',
   },
-  battlenetId: {
-    type: String,
-    trim: true,
-    default: '',
-  },
-  epicGamesId: {
+  twitter: {
     type: String,
     trim: true,
     default: '',
   },
 }, { timestamps: true });
 
-module.exports = mongoose.model('connections', connectionsSchema);
+module.exports = mongoose.model('socials', socialsSchema);
