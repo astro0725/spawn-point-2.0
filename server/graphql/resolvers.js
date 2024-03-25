@@ -96,6 +96,19 @@ const resolvers = {
       await user.save();
       return { success: true, message: 'Password successfully changed' };
     },
+    // delete user
+    deleteUser: async (_, { userId }, context) => {
+      // checks if the data to be changed belongs to the logged in user
+      if (!context.user || context.user._id !== userId) {
+        throw new Error('Unauthorized');
+      }
+      const user = await db.User.findById(userId);
+      if (!user) {
+        throw new Error('User not found');
+      }
+      await db.User.findByIdAndDelete(userId);
+      return { success: true, message: 'User successfully deleted' };
+    },
   }
 };
 
