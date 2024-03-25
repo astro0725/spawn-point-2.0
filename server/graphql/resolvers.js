@@ -13,6 +13,16 @@ const resolvers = {
     allUsers: async () => {
       return await db.User.find({});
     },
+    // get all users with pagination
+    userSort: async (_, { filter }) => {
+      let query = {};
+      if (filter) {
+        const { username, name } = filter;
+        if (username) query.username = new RegExp(username, 'i');
+        if (name) query.name = new RegExp(name, 'i');
+      }
+      return await db.User.find(query);
+    },
   },
 
   Mutation: {
