@@ -18,11 +18,16 @@ const resolvers = {
   Mutation: {
     // create a new user
     addUser: async (_, { username, email, password }, context) => {
-      // check if username or email already exists
-      const existingUser = await db.User.findOne({ $or: [{ username }, { email }] });
-      if (existingUser) {
-        throw new Error('Username or email already exists.');
-      }
+      // check if username already exists in the database
+      const existingUsername = await db.User.findOne({ username });
+        if (existingUsername) {
+          throw new Error('Username already exists.');
+        }
+        // check if the email already exists in the database
+        const existingEmail = await db.User.findOne({ email });
+        if (existingEmail) {
+          throw new Error('Email already exists.');
+        }
       // variable for hashing password
       const hashedPassword = await bcrypt.hash(password, saltRounds);
       // new user saved to database & hashes password
