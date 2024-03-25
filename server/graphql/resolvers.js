@@ -6,10 +6,10 @@ const saltRounds = 10;
 const resolvers = {
   Query: {
     // find by id
-    user: async (_, args) => {
-      return await db.User.findById(args.id);
+    userById: async (_, { id }) => {
+      return await db.User.findById(id);
     },
-    // find all users
+    // get all users
     allUsers: async () => {
       return await db.User.find({});
     },
