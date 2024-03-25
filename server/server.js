@@ -4,7 +4,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const { ApolloServer } = require('apollo-server-express');
 const { PubSub } = require('graphql-subscriptions');
-const { schema } = require('graphql');
+const { schema } = require('./graphql');
 const { createServer } = require('http');
 const { useServer } = require('graphql-ws/lib/use/ws');
 const { WebSocketServer } = require('ws');
@@ -33,9 +33,6 @@ mongoose.connect(process.env.DB_URI, { useNewUrlParser: true, useUnifiedTopology
 
 // initialize apollo pubSub for subs
 const pubsub = new PubSub();
-
-// create an executable GraphQL schema
-const schema = require('./schema');
 
 // initialize apollo server with the schema and context
 const apolloServer = new ApolloServer({ 
