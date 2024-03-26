@@ -95,7 +95,8 @@ type Game {
   title: String!
   splashArt: String!
   createdAt: String!
-  updatedAt: String!
+  updatedAt: String
+  users: [User!]
 }
 
 type User {
@@ -106,21 +107,20 @@ type User {
   profileImage: String
   name: String
   bio: String
-  posts: [Post!]!
-  guides: [Guide!]!
-  chatrooms: [Chatroom!]!
+  posts: [Post!]
+  guides: [Guide!]
   profileHeader: String
-  showcases: [Showcase!]!
-  following: [User!]!
-  followers: [User!]!
-  blockedUsers: [User!]!
-  friends: [User!]!
-  postCount: Int!
-  guideCount: Int!
-  blockedCount: Int!
-  followingCount: Int!
-  followerCount: Int!
-  friendCount: Int!
+  showcases: [Showcase!]
+  following: [User!]
+  followers: [User!]
+  blockedUsers: [User!]
+  friends: [User!]
+  postCount: [Int!]
+  guideCount: [Int!]
+  blockedCount: [Int!]
+  followingCount: [Int!]
+  followerCount: [Int!]
+  friendCount: [Int!]
 }
 
 type Connections {
@@ -149,9 +149,9 @@ type Socials {
 type Showcase {
   id: ID!
   userId: User!
-  games: [Game!]!
-  socials: [Socials!]!
-  connections: [Connection!]!
+  games: [Game!]
+  socials: [Socials!]
+  connections: [Connection!]
   isVisible: Boolean!
   createdAt: String!
   updatedAt: String!
@@ -174,13 +174,14 @@ type Post {
   content: String!
   image: [Image!]
   author: User!
-  likes: [User!]!
-  reply: [Reply!]!
-  reactions: [Reaction!]!
-  tags: [String!]!
+  likes: [User!]
+  reply: [Reply!]
+  reactions: [Reaction!]
+  tags: [String!]
   createdAt: String!
   updatedAt: String!
-  replyCount: Int!
+  replyCount: [Int!]
+  game: [Game!]
 }
 
 type Guide {
@@ -195,7 +196,8 @@ type Guide {
   tags: [String!]!
   createdAt: String!
   updatedAt: String!
-  commentCount: Int!
+  commentCount: [Int!]
+  game: [Game!]
 }
 
 type Image {
