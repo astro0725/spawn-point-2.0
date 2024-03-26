@@ -4,6 +4,7 @@ const typeDefs = gql`
 type Query {
   gameById(id: ID!): Game
   allGames: [Game!]!
+  gameSort(page: Int, limit: Int, tag: String, keyword: String): [Game!]!
 
   userById(id: ID!): User
   allUsers: [User!]!
