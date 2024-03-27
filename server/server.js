@@ -4,10 +4,11 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const { ApolloServer } = require('apollo-server-express');
 const { PubSub } = require('graphql-subscriptions');
-const { schema } = require('./graphql');
 const { createServer } = require('http');
 const { useServer } = require('graphql-ws/lib/use/ws');
-const { WebSocketServer } = require('ws');
+const { WebSocketServer } = require('ws')
+const { schema } = require('./graphql');
+const { authMiddleware } = require('./utils/auth');;
 
 // initialize express application
 const app = express();
@@ -34,10 +35,40 @@ mongoose.connect(process.env.DB_URI, { useNewUrlParser: true, useUnifiedTopology
 // initialize apollo pubSub for subs
 const pubsub = new PubSub();
 
+// apply auth middleware globally
+app.use(authMiddleware);
+
 // initialize apollo server with the schema and context
 const apolloServer = new ApolloServer({ 
-  schema, 
-  context: ({ req }) => ({ req, pubsub })
+  schema,
+  // set up the context for each operation
+  context: ({ req, connection }) => {
+    // check if the operation is a subscription
+    if (connection) {
+      // for subscriptions, use the connection context
+      return { pubsub, user: connection.context.user };
+    } else {
+      // for queries and mutations, use the http request context
+      return { req, pubsub, user: req.user };
+    }
+  },
+  subscriptions: {
+    // handle websocket connection for subscriptions
+    onConnect: (connectionParams, webSocket, context) => {
+      // extract token from the connection parameters
+      const token = connectionParams.authToken;
+      if (token) {
+        // validate the token and get user information
+        const user = validateToken(token); 
+        if (user) {
+          // if token is valid, return the user context
+          return { user };
+        }
+      }
+      // if no token or token is invalid, throw an error
+      throw new Error('missing or invalid auth token!');
+    },
+  },
 });
 
 async function startServer() {
