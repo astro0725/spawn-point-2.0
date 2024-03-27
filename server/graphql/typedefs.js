@@ -35,11 +35,14 @@ type Mutation {
   updateGame(id: ID!, title: String, splashArt: String): Game
   deleteGame(id: ID!): Game
 
-  createUser(username: String!, password: String!, email: String!): User
+  reateUser(username: String!, password: String!, email: String!): AuthPayload
   updateProfileImage(userId: ID!, newImage: Upload!): User
   followUser(userId: ID!, followUserId: ID!): User
   unfollowUser(userId: ID!, unfollowUserId: ID!): User
-  deleteUser(id: ID!): User
+  deleteUser(id: ID!): ResponseMessage
+  changeEmail(userId: ID!, newEmail: String!): ResponseMessage
+  changeUsername(userId: ID!, newUsername: String!): ResponseMessage
+  changePassword(userId: ID!, oldPassword: String!, newPassword: String!): ResponseMessage
 
   updateConnections(userId: ID!, steamId: String, playstationId: String, riotId: String, xboxId: String, battlenetId: String, epicGamesId: String): Connections
 
@@ -66,6 +69,16 @@ type Mutation {
 
   addReaction(contentId: ID!, contentType: ContentType!, userId: ID!, emoji: String!): Reaction
   removeReaction(contentId: ID!, contentType: ContentType!, userId: ID!, emoji: String!): Reaction
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+type ResponseMessage {
+  success: Boolean!
+  message: String!
 }
 
 type Subscription {
