@@ -53,18 +53,25 @@ type Mutation {
   createNotification(type: NotificationType!, message: String!, userId: ID!, relatedContentId: ID, onModel: String): Notification
 
   createPost(content: String!, image: Upload,, authorId: ID!, tags: [String]): Post
+  editPost(postId: ID!, content: String!): Post
   likePost(postId: ID!, userId: ID!): Post
+  removePostLike(postId: ID!, userId: ID!): Post
   deletePost(postId: ID!): Post
 
   createGuide(content: String!, images: Upload, authorId: ID!, tags: [String]): Guide
+  editGuide(guideId: ID!, content: String!, image: Upload): Guide
   likeGuide(guideId: ID!, userId: ID!): Guide
+  removeGuideLike(guideId: ID!, userId: ID!): Guide
   dislikeGuide(guideId: ID!, userId: ID!): Guide
+  removeGuideDislike(guideId: ID!, userId: ID!): Guide
   deleteGuide(guideId: ID!): Guide
 
   createReply(content: String!, authorId: ID!): Reply
+  editReply(replyId: ID!, content: String!): Reply
   deleteReply(replyId: ID!): Reply
 
   createComment(content: String!, authorId: ID!): Comment
+  editComment(commentId: ID!, content: String!): Comment
   deleteComment(commentId: ID!): Comment
 
   addReaction(contentId: ID!, contentType: ContentType!, userId: ID!, emoji: String!): Reaction
