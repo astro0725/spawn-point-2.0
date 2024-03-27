@@ -5,23 +5,74 @@ const saltRounds = 10;
 
 const resolvers = {
   Query: {
-    // find by id
+    // find user by id
     userById: async (_, { id }) => {
-      return await db.User.findById(id);
+      try {
+        const user = await db.User.findById(id);
+        return user;
+      } catch (err) {
+        console.log('Error finding user by id:' + err);
+      }
     },
     // get all users
     allUsers: async () => {
-      return await db.User.find({});
+      try {
+        const users = await db.User.find({});
+        return users;
+      } catch (error) {
+        console.log('Error fetching all users:' + error);
+      }
     },
     // get all users with pagination
     userSort: async (_, { filter }) => {
-      let query = {};
-      if (filter) {
-        const { username, name } = filter;
-        if (username) query.username = new RegExp(username, 'i');
-        if (name) query.name = new RegExp(name, 'i');
+      try {
+        const query = {};
+        if (filter) {
+          const { username, name } = filter;
+          if (username) query.username = new RegExp(username, 'i');
+          if (name) query.name = new RegExp(name, 'i');
+        }
+        const users = await db.User.find(query);
+        skip((page - 1 ) * limit);
+        return users;
+      } catch (error) {
+        console.log('Error filtering users by search:' + error);
       }
-      return await db.User.find(query);
+    },
+    // find game by id
+    gameById: async (_, { id }) => {
+      try {
+        const game = await db.Game.findById(id);
+        return game;
+      } catch (error) {
+        console.log('Error finding game by id:' + error);
+      }
+    },
+    // get all users
+    allGames: async () => {
+      try {
+        const games = await db.Game.find({});
+        return games;
+      } catch (error) {
+        console.log('Error fetching all games:' + error);
+      }
+    },
+    // get all users with pagination
+    gameSort: async (_, { page = 1, limit = 10, tag, keyword }) => {
+      try {
+        const query = {};
+        if (tag) {
+          query.tags = tag;
+        }
+        if (keyword) {
+          query.name = new RegExp(keyword, 'i');
+        }
+        const games = await db.Game.find(query);
+        skip((page - 1) * limit);
+        return games;
+      } catch (error) {
+        console.log('Error filtering games by search:' + error);
+      }
     },
   },
 
