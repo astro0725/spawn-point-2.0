@@ -27,6 +27,12 @@ const typeResolvers = {
     friends: async (user) => {
       return await UserModel.find({ _id: { $in: user.friends } });
     },
+    isFriend: async (parent, { otherUserId }, context) => {
+      if (!context.user) {
+        throw new Error("You must be logged in to check friendship status.");
+      }
+      return parent.isFriend(otherUserId);
+    },
     // showcases: async (user, args, context) => {
     //   return await ShowcaseModel.find({ userId: user._id });
     // },

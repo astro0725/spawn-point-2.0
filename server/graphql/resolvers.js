@@ -667,6 +667,83 @@ const resolvers = {
         throw new Error(`Removing guide dislike failed: ${error.message}`);
       }
     },
+    // add user to followers array
+    followUser: async (_, { followerId, followeeId }) => {
+      try {
+        const follower = await db.User.findById(followerId);
+        const followee = await db.User.findById(followeeId);
+        if (!follower || !followee) {
+          return { success: false, message: "User not found" };
+        }
+        
+        const success = await follower.follow(followeeId);
+        return {
+          success,
+          message: success ? "Followed successfully" : "Already following",
+        };
+      } catch (error) {
+        console.error(`Error following user: ${error}`);
+        throw new Error(`Error following user: ${error.message}`);
+      }
+    },
+    // remove user from followers array
+    unfollowUser: async (_, { followerId, followeeId }) => {
+      try {
+        const follower = await db.User.findById(followerId);
+        const followee = await db.User.findById(followeeId);
+        if (!follower ||!followee) {
+          return { success: false, message: "User not found" };
+        }
+        
+        const success = await follower.unfollow(followeeId);
+        return {
+          success,
+          message: success ? "Unfollowed successfully" : "Not following",
+        };
+      } catch (error) {
+        console.error(`Error unfollowing user: ${error}`);
+        throw new Error(`Error unfollowing user: ${error.message}`);
+      }
+    },
+    // add user to blockedUsers array
+    blockUser: async (_, { userId, blockeeId }) => {
+      try {
+        const user = await db.User.findById(userId);
+        const blockee = await db.User.findById(blockeeId);
+        if (!user ||!blockee) {
+          return { success: false, message: "User not found" };
+        }
+        
+        const success = await user.block(blockeeId);
+        return {
+          success,
+          message: success ? "Blocked successfully" : "Already blocked",
+        };
+      } catch (error) {
+        console.error(`Error blocking user: ${error}`);
+        throw new Error(`Error blocking user: ${error.message}`);
+      }
+    },
+    // remove user from blockedUsers array
+    unblockUser: async (_, { userId, blockeeId }) => {
+      try {
+        const user = await db.User.findById(userId);
+        const blockee = await db.User.findById(blockeeId);
+        if (!user ||!blockee) {
+          return { success: false, message: "User not found" };
+        }
+        
+        const success = await user.unblock(blockeeId);
+        return {
+          success,
+          message: success ? "Unblocked successfully" : "Not blocked",
+        };
+      } catch (error) {
+        console.error(`Error unblocking user: ${error}`);
+        throw new Error(`Error unblocking user: ${error.message}`);
+      }
+    },
+    // import type resolvers 
     ...typeResolvers,
   }
 };

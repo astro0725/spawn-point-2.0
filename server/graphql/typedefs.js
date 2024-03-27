@@ -38,14 +38,17 @@ type Mutation {
   updateGame(id: ID!, title: String, splashArt: String): Game
   deleteGame(id: ID!): Game
 
-  reateUser(username: String!, password: String!, email: String!): AuthPayload
-  updateProfileImage(userId: ID!, newImage: Upload!): User
-  followUser(userId: ID!, followUserId: ID!): User
-  unfollowUser(userId: ID!, unfollowUserId: ID!): User
+  createUser(username: String!, password: String!, email: String!): AuthPayload
   deleteUser(id: ID!): ResponseMessage
+  changeProfileImage(userId: ID!, newImage: Upload!): User
   changeEmail(userId: ID!, newEmail: String!): ResponseMessage
   changeUsername(userId: ID!, newUsername: String!): ResponseMessage
   changePassword(userId: ID!, oldPassword: String!, newPassword: String!): ResponseMessage
+
+  followUser(followerId: ID!, followeeId: ID!): FollowStatus
+  unfollowUser(followerId: ID!, followeeId: ID!): FollowStatus
+  blockUser(userId: ID!, blockeeId: ID!): BlockStatus
+  unblockUser(userId: ID!, blockeeId: ID!): BlockStatus
 
   updateConnections(userId: ID!, steamId: String, playstationId: String, riotId: String, xboxId: String, battlenetId: String, epicGamesId: String): Connections
 
@@ -87,6 +90,16 @@ type AuthPayload {
 }
 
 type ResponseMessage {
+  success: Boolean!
+  message: String!
+}
+
+type FollowStatus {
+  success: Boolean!
+  message: String!
+}
+
+type BlockStatus {
   success: Boolean!
   message: String!
 }
@@ -145,6 +158,7 @@ type User {
   followingCount: [Int!]
   followerCount: [Int!]
   friendCount: [Int!]
+  isFriend(otherUserId: ID!): Boolean
 }
 
 type Connections {

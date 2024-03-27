@@ -112,55 +112,52 @@ userSchema.virtual('showcase', {
 });
 
 // method 2 follow 
-userSchema.methods.follow = async function (userIdToFollow) {
+userSchema.methods.follow = async function (followeeId) {
   try {
-    if (!this.following.includes(userIdToFollow)) {
-      this.following.push(userIdToFollow);
+    if (!this.following.includes(followeeId)) {
+      this.following.push(followeeId);
       await this.save();
 
-      const userToFollow = await this.model('User').findById(userIdToFollow);
-      if (userToFollow.followers.includes(this._id)) {
-        if (!this.friends.includes(userIdToFollow)) {
-          this.friends.push(userIdToFollow);
+      // Update the follower (this) by adding the followee's ID to their friends array
+      const followee = await this.model('User').findById(followeeId);
+      if (followee) {
+        if (!this.friends.includes(followeeId)) {
+          this.friends.push(followeeId);
           await this.save();
         }
-        if (!userToFollow.friends.includes(this._id)) {
-          userToFollow.friends.push(this._id);
-          await userToFollow.save();
-        }
-      } else if (!userToFollow.followers.includes(this._id)) {
-        userToFollow.followers.push(this._id);
-        await userToFollow.save();
       }
+      // Update the followee (userToFollow) by adding the follower's ID to their followers array
+      followee.followers.push(this._id);
+      await followee.save();
 
       return true;
     }
-    return false; 
+    return false;
   } catch (error) {
     console.error('Error following user:', error);
-    throw error; 
+    throw error;
   }
 };
 
 // method 2 unfollow
-userSchema.methods.unfollow = async function (userIdToUnfollow) {
+userSchema.methods.unfollow = async function (followeeId) {
   try {
-    if (this.following.includes(userIdToUnfollow)) {
-      this.following = this.following.filter(followingId => !followingId.equals(userIdToUnfollow));
+    if (this.following.includes(followeeId)) {
+      this.following = this.following.filter(id => !id.equals(followeeId));
 
-      const userToUnfollow = await this.model('User').findById(userIdToUnfollow);
-      if (userToUnfollow) {
-        userToUnfollow.followers = userToUnfollow.followers.filter(followerId => !followerId.equals(this._id));
-        await userToUnfollow.save();
+      const followee = await this.model('User').findById(followeeId);
+      if (followee) {
+        followee.followers = followee.followers.filter(id => !id.equals(this._id));
+        await followee.save();
       }
 
-      if (this.friends.includes(userIdToUnfollow)) {
-        this.friends = this.friends.filter(friendId => !friendId.equals(userIdToUnfollow));
+      if (this.friends.includes(followeeId)) {
+        this.friends = this.friends.filter(id => !id.equals(followeeId));
         await this.save();
 
-        if (userToUnfollow.friends.includes(this._id)) {
-          userToUnfollow.friends = userToUnfollow.friends.filter(friendId => !friendId.equals(this._id));
-          await userToUnfollow.save();
+        if (followee.friends.includes(this._id)) {
+          followee.friends = followee.friends.filter(id => !id.equals(this._id));
+          await followee.save();
         }
       }
 
@@ -175,19 +172,19 @@ userSchema.methods.unfollow = async function (userIdToUnfollow) {
 };
 
 // method 2 block
-userSchema.methods.blockUser = async function (userIdToBlock) {
+userSchema.methods.blockUser = async function (blockeeId) {
   try {
-    if (!this.blockedUsers.includes(userIdToBlock)) {
-      this.blockedUsers.push(userIdToBlock);
-      this.following = this.following.filter(followingId => !followingId.equals(userIdToBlock));
-      this.followers = this.followers.filter(followerId => !followerId.equals(userIdToBlock));
+    if (!this.blockedUsers.includes(blockeeId)) {
+      this.blockedUsers.push(blockeeId);
+      this.following = this.following.filter(id => !id.equals(blockeeId));
+      this.followers = this.followers.filter(id => !id.equals(blockeeId));
 
       await this.save();
 
-      const userToBlock = await this.model('User').findById(userIdToBlock);
-      if (userToBlock) {
-        userToBlock.followers = userToBlock.followers.filter(followerId => !followerId.equals(this._id));
-        await userToBlock.save();
+      const blockee = await this.model('User').findById(blockeeId);
+      if (blockee) {
+        blockee.followers = blockee.followers.filter(id => !id.equals(this._id));
+        await blockee.save();
       }
 
       return true; 
@@ -202,10 +199,10 @@ userSchema.methods.blockUser = async function (userIdToBlock) {
 
 
 // method 2 unblock
-userSchema.methods.unblockUser = async function (userIdToUnblock) {
+userSchema.methods.unblockUser = async function (blockeeId) {
   try {
-    if (this.blockedUsers.includes(userIdToUnblock)) {
-      this.blockedUsers = this.blockedUsers.filter(blockedId => !blockedId.equals(userIdToUnblock));
+    if (this.blockedUsers.includes(blockeeId)) {
+      this.blockedUsers = this.blockedUsers.filter(id => !id.equals(blockeeId));
 
       await this.save();
 
