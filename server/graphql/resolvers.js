@@ -78,29 +78,33 @@ const resolvers = {
 
   Mutation: {
     // create a new user
-    addUser: async (_, { username, email, password }, context) => {
+    createUser: async (_, { username, email, password }) => {
       // check if username already exists in the database
       const existingUsername = await db.User.findOne({ username });
-        if (existingUsername) {
-          throw new Error('Username already exists.');
-        }
-        // check if the email already exists in the database
-        const existingEmail = await db.User.findOne({ email });
-        if (existingEmail) {
-          throw new Error('Email already exists.');
-        }
-      // variable for hashing password
+      if (existingUsername) {
+        throw new Error('Username already exists.');
+      }
+      // check if the email already exists in the database
+      const existingEmail = await db.User.findOne({ email });
+      if (existingEmail) {
+        throw new Error('Email already exists.');
+      }
+      // hash the password
       const hashedPassword = await bcrypt.hash(password, saltRounds);
-      // new user saved to database & hashes password
+      // create a new user and save to the database
       const newUser = new db.User({
         username,
         email,
-        password: hashedPassword
+        password: hashedPassword,
       });
-      // save user to database
       await newUser.save();
+      // generate a token for the new user
       const token = signToken(newUser);
-      return { token, user: newUser };
+      // return the token and the user in an object that matches the AuthPayload type
+      return {
+        token,
+        user: newUser,
+      };
     },
     // change email of authenticated user
     changeEmail: async (_, { userId, newEmail }, context) => {
