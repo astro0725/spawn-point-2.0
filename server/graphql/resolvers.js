@@ -190,6 +190,37 @@ const resolvers = {
       throw error;
       }
     },
+    // add game to user creation
+    addGame: async (_, { title, splashArt}) => {
+      try {
+        const newGame = new Game ({ title, splashArt });
+        const savedGame = await newGame.save();
+        return savedGame;
+        } catch (error) {
+        console.error('Error adding game:', error);
+        throw error;
+      }
+    },
+    // update game in user creation
+    updateGame: async (_, { id, title, splashArt }) => {
+      try {
+        const updatedGame = await Game.findByIdAndUpdate(id, { title, splashArt }, { new: true });
+        return updatedGame;
+      } catch (error) {
+        console.error('Error updating game:', error);
+        throw error;
+      }
+    },
+    // delete game from user creation
+    deleteGame: async (_, { id }) => {
+      try {
+        const deletedGame = await Game.findByIdAndDelete(id);
+        return deletedGame;
+      } catch (error) {
+        console.error('Error deleting game:', error);
+        throw error;
+      }
+    },
   }
 };
 
