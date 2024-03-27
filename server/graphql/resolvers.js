@@ -2,6 +2,10 @@ const db = require('../models');
 const { signToken } = require('../utils/auth');
 const bcrypt = require('bcrypt');
 const saltRounds = 10;
+const  fs = require('fs');
+const path = require('path');
+const { promisify } = require('util');
+const unlinkAsync = promisify(fs.unlink);
 
 const resolvers = {
   Query: {
@@ -11,9 +15,9 @@ const resolvers = {
         // use mongoose model to find user by id
         const user = await db.User.findById(id);
         return user;
-      } catch (err) {
+      } catch (error) {
         // log error if there is a problem finding the user
-        console.log('error finding user by id:' + err);
+        console.log('error finding user by id:' + error);
       }
     },
     // get all users
@@ -69,13 +73,13 @@ const resolvers = {
       }
     },
     // get all games with pagination
-    gameSort: async (_, { page = 1, limit = 10, tag, keyword }) => {
+    gameSort: async (_, { page = 1, limit = 10, tags, keyword }) => {
       try {
         // initial empty query object
         const query = {};
-        // if tag is provided, add to query
-        if (tag) {
-          query.tags = tag;
+        // if tags is provided, add to query
+        if (tags) {
+          query.tagss = tags;
         }
         // if keyword is provided, create a regex query for name
         if (keyword) {
@@ -89,106 +93,169 @@ const resolvers = {
         console.log('error filtering games by search:' + error);
       }
     },
+    // get post by id
+    postById: async (_, { id }) => {
+      try {
+        // use mongoose model to find post by id
+        const post = await db.Post.findById(id);
+        return post;
+      } catch (error) {
+        // log error if there is a problem finding the post
+        console.log('error finding post by id:' + error);
+      }
+    },
+    // get all posts
+    allPosts: async () => {
+      try {
+        // use mongoose model to find all posts
+        const posts = await db.Post.find({});
+        return posts;
+      } catch (error) {
+        // log error if there is a problem fetching all posts
+        console.log('error fetching all posts:' + error);
+      }
+    },
+    // get all posts with pagination
+    postSort: async (_, { page = 1, limit = 10, tags, keyword, game }) => {
+      try {
+        // initial empty query object
+        const query = {};
+        // if tags is provided, add to query
+        if (tags) {
+          query.tags = tags;
+        }
+        // if keyword is provided, create a regex query for name
+        if (keyword) {
+          query.name = new RegExp(keyword, 'i');
+        }
+        if (game) {
+          query.game = new RegExp(game, 'i');
+        }
+        // use mongoose model to find posts based on query
+        const posts = await db.Post.find(query);
+        return posts;
+      } catch (error) {
+        // log error if there is a problem filtering posts
+        console.log('error filtering posts by search:' + error);
+      }
+    },
   },
 
   Mutation: {
     // create a new user
     createUser: async (_, { username, email, password }) => {
-      // check if username already exists
-      const existingUsername = await db.User.findOne({ username });
-      if (existingUsername) {
-        // throw error if username exists
-        throw new Error('username already exists.');
+      try {
+        // check if the username already exists
+        const existingUsername = await db.User.findOne({ username });
+        if (existingUsername) {
+          throw new Error('Username already exists.');
+        }
+        // check if the email already exists
+        const existingEmail = await db.User.findOne({ email });
+        if (existingEmail) {
+          throw new Error('Email already exists.');
+        }
+        // hash the password
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        // create a new user
+        const newUser = new db.User({
+          username,
+          email,
+          password: hashedPassword,
+        });
+        await newUser.save();
+        // generate a token for the new user
+        const token = signToken(newUser);
+        return {
+          token,
+          user: newUser,
+        };
+      } catch (error) {
+        console.error(`Creating user failed: ${error}`);
+        throw new Error(`Creating user failed: ${error.message}`);
       }
-      // check if email already exists
-      const existingEmail = await db.User.findOne({ email });
-      if (existingEmail) {
-        // throw error if email exists
-        throw new Error('email already exists.');
-      }
-      // hash the password before saving to database
-      const hashedPassword = await bcrypt.hash(password, saltRounds);
-      // create new user with hashed password
-      const newUser = new db.User({
-        username,
-        email,
-        password: hashedPassword,
-      });
-      // save the new user
-      await newUser.save();
-      // generate a token for the new user
-      const token = signToken(newUser);
-      // return the token and the user
-      return {
-        token,
-        user: newUser,
-      };
     },
-    // change email of authenticated user
+    // change a user's email
     changeEmail: async (_, { userId, newEmail }, context) => {
-      // ensure the request comes from an authenticated user
-      if (!context.user || context.user._id !== userId) {
-        throw new Error('unauthorized');
+      try {
+        // ensure the request is from an authenticated user
+        if (!context.user || context.user._id !== userId) {
+          throw new Error('Unauthorized');
+        }
+        // check if the new email is already in use
+        const emailExists = await db.User.findOne({ email: newEmail });
+        if (emailExists) {
+          return { success: false, message: 'Email already in use' };
+        }
+        // update the user's email
+        const user = await db.User.findById(userId);
+        user.email = newEmail;
+        await user.save();
+        return { success: true, message: 'Email successfully changed' };
+      } catch (error) {
+        console.error(`Changing email failed: ${error}`);
+        throw new Error(`Changing email failed: ${error.message}`);
       }
-      // check if the new email is already in use
-      const emailExists = await db.User.findOne({ email: newEmail });
-      if (emailExists) {
-        return { success: false, message: 'email already in use' };
-      }
-      // find the user by id and update their email
-      const user = await db.User.findById(userId);
-      user.email = newEmail;
-      await user.save();
-      // confirm the email has been changed
-      return { success: true, message: 'email successfully changed' };
     },
-    // change the username of an authenticated user
+    // change a user's username
     changeUsername: async (_, { userId, newUsername }, context) => {
-      // ensure the request comes from an authenticated user
-      if (!context.user || context.user._id !== userId) {
-        throw new Error('unauthorized');
+      try {
+        // ensure the request is from an authenticated user
+        if (!context.user || context.user._id !== userId) {
+          throw new Error('Unauthorized');
+        }
+        // check if the new username is already in use
+        const usernameExists = await db.User.findOne({ username: newUsername });
+        if (usernameExists) {
+          return { success: false, message: 'Username already in use' };
+        }
+        // update the user's username
+        const user = await db.User.findById(userId);
+        user.username = newUsername;
+        await user.save();
+        return { success: true, message: 'Username successfully changed' };
+      } catch (error) {
+        console.error(`Changing username failed: ${error}`);
+        throw new Error(`Changing username failed: ${error.message}`);
       }
-      // check if the new username is already in use
-      const usernameExists = await db.User.findOne({ username: newUsername });
-      if (usernameExists) {
-        return { success: false, message: 'username already in use' };
-      }
-      // find the user by id and update their username
-      const user = await db.User.findById(userId);
-      user.username = newUsername;
-      await user.save();
-      // confirm the username has been changed
-      return { success: true, message: 'username successfully changed' };
     },
-    // change the password of an authenticated user
+    // change a user's password
     changePassword: async (_, { userId, oldPassword, newPassword }, context) => {
-      // ensure the request comes from an authenticated user
-      if (!context.user || context.user._id !== userId) {
-        return { success: false, message: 'unauthorized' };
+      try {
+        // ensure the request is from an authenticated user
+        if (!context.user || context.user._id !== userId) {
+          return { success: false, message: 'Unauthorized' };
+        }
+        // verify the old password is correct
+        const user = await db.User.findById(userId);
+        const isMatch = await bcrypt.compare(oldPassword, user.password);
+        if (!isMatch) {
+          return { success: false, message: 'Old password is incorrect' };
+        }
+        // hash the new password and update it
+        const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
+        user.password = hashedPassword;
+        await user.save();
+        return { success: true, message: 'Password successfully changed' };
+      } catch (error) {
+        console.error(`Changing password failed: ${error}`);
+        throw new Error(`Changing password failed: ${error.message}`);
       }
-      // verify the old password is correct
-      const user = await db.User.findById(userId);
-      const isMatch = await bcrypt.compare(oldPassword, user.password);
-      if (!isMatch) {
-        return { success: false, message: 'old password is incorrect' };
-      }
-      // hash the new password and update it in the database
-      const hashedPassword = await bcrypt.hash(newPassword, saltRounds);
-      user.password = hashedPassword;
-      await user.save();
-      // confirm the password has been changed
-      return { success: true, message: 'password successfully changed' };
     },
     // delete a user
     deleteUser: async (_, { userId }, context) => {
-      // ensure the request comes from an authenticated user
-      if (!context.user || context.user._id !== userId) {
-        throw new Error('unauthorized');
+      try {
+        // ensure the request is from an authenticated user
+        if (!context.user || context.user._id !== userId) {
+          throw new Error('Unauthorized');
+        }
+        // delete the user
+        await db.User.findByIdAndDelete(userId);
+        return { success: true, message: 'User successfully deleted' };
+      } catch (err) {
+        console.error(`Deleting user failed: ${error}`);
+        throw new Error(`Deleting user failed: ${error.message}`);
       }
-      // delete the user from the database
-      await db.User.findByIdAndDelete(userId);
-      // confirm the user has been deleted
-      return { success: true, message: 'user successfully deleted' };
     },
     // create a new notification
     createNotification: async (_, { type, message, userId, relatedContentId, onModel }) => {
@@ -206,7 +273,7 @@ const resolvers = {
       // return the newly created notification
       return newNotification;
       } catch (error) {
-      console.error('Error creating notification:', error);
+      console.error(`Error creating notification: ${error}`);
       throw error;
       }
     },
@@ -214,44 +281,178 @@ const resolvers = {
     addGame: async (_, { title, splashArt }) => {
       try {
         // create a new game instance
-        const newGame = new Game({ title, splashArt });
+        const newGame = new db.Game({ title, splashArt });
         // save the new game to the database
         const savedGame = await newGame.save();
         // return the saved game object
         return savedGame;
       } catch (error) {
         // log and throw any errors encountered during the game creation process
-        console.error('error adding game:', error);
+        console.error(`Error adding game: ${error}`);
         throw error;
       }
     },
-    
     // update a game in user creation
     updateGame: async (_, { id, title, splashArt }) => {
       try {
         // find a game by its id and update its title and splash art
         // the { new: true } option returns the updated document
-        const updatedGame = await Game.findByIdAndUpdate(id, { title, splashArt }, { new: true });
+        const updatedGame = await db.Game.findByIdAndUpdate(id, { title, splashArt }, { new: true });
         // return the updated game object
         return updatedGame;
       } catch (error) {
         // log and throw any errors encountered during the game update process
-        console.error('error updating game:', error);
+        console.error(`Error updating game: ${error}`);
         throw error;
       }
     },
-    
     // delete a game from user creation
     deleteGame: async (_, { id }) => {
       try {
         // find a game by its id and delete it
-        const deletedGame = await Game.findByIdAndDelete(id);
+        const deletedGame = await db.Game.findByIdAndDelete(id);
         // return the deleted game object
         return deletedGame;
       } catch (error) {
         // log and throw any errors encountered during the game deletion process
-        console.error('error deleting game:', error);
+        console.error(`Error deleting game: ${error}`);
         throw error;
+      }
+    },
+    // create a new post
+    createPost: async (_, { content, image, authorId, tags, game }) => {
+      try {
+        // check if the author exists / is a authenticated user
+        const authorExists = await db.User.findById(authorId);
+        if (!authorExists) {
+          throw new Error('Author not found');
+        }
+        // check if the game exists
+        let gameDocument = null;
+        if (game) {
+          // find a game by its id
+          gameDocument = await db.Game.findById(game);
+          if (!gameDocument) {
+            throw new Error('Game not found');
+          }
+        }
+        // initialize the imageUrl variable to store url of the uploaded image
+        let imageUrl;
+        // check if an image was provided/uploaded
+        if (image) {
+          // await the file upload promise to resolve, extracting the createReadStream method and filename
+          const { createReadStream, filename } = await image;
+          // call createReadStream to get a readable stream for the uploaded file
+          const stream = createReadStream();
+          // construct a path for saving the file, combining the directory path with the filename
+          const pathName = path.join(__dirname, `/uploads/${filename}`);
+          // use a promise to handle the asynchronous operation of writing the file to disk
+          await new Promise((resolve, reject) => {
+            // create a write stream pointing to the file path where the uploaded file should be saved
+            const writeStream = fs.createWriteStream(pathName);
+            // pipe the readable stream (uploaded file's content) to the write stream (disk location)
+            stream.pipe(writeStream);
+            // when the write stream finishes writing, resolve the promise
+            writeStream.on("finish", resolve);
+            // if the write stream encounters an error, reject the promise
+            writeStream.on("error", reject);
+          }).catch(async (error) => {
+            // if writing the file fails, log the error
+            console.error(`Failed to write file to disk: ${error}`);
+            // attempt to delete the file to clean up any partially written files
+            await unlinkAsync(pathName).catch(console.error); 
+            // rethrow the error to handle it in the outer try-catch block
+            throw new Error(`Failed to process upload: ${error.message}`);
+          });
+          // if the write stream was successful construct the url to access file
+          // TODO: replace this url with actual url at some point
+          imageUrl = `http://(insertmyserverurl?)/uploads/${filename}`; 
+        }
+        // create a new post object
+        const newPost = new db.Post({
+          content,
+          image: imageUrl, 
+          author: authorId,
+          tags,
+          game: gameDocument ? gameDocument._id : undefined,
+        });
+        // save the new post to the database
+        await newPost.save();
+        return newPost;
+      } catch (error) {
+        // log and throw any errors encountered during the post creation process
+        console.error(`Creating post failed: ${error}`);
+        throw new Error(`Creating post failed: ${error.message}`);
+      }
+    },
+    // edit an existing post by its postId
+    editPost: async (_, { postId, content }) => {
+      try {
+        // find a post by its id and update its content
+        const updatedPost = await db.Post.findByIdAndUpdate(
+          postId,
+          { content },
+          { new: true } // return the updated document
+        );
+        // if the post was not found, throw an error
+        if (!updatedPost) {
+          throw new Error('post not found');
+        }
+        // return the updated post object
+        return updatedPost;
+      } catch (error) {
+        // log and throw any errors encountered during the post update process
+        console.error(`error editing post: ${error}`);
+        throw new Error(`editing post failed: ${error.message}`);
+      }
+    },
+    // like a post by adding userId to the post's likes
+    likePost: async (_, { postId, userId }) => {
+      try {
+        // find a post by its id and add userId to the likes array
+        const post = await db.Post.findById(postId);
+        if (!post.likes.includes(userId)) {
+          post.likes.push(userId);
+          await post.save();
+        }
+        // return the updated post object
+        return post;
+      } catch (error) {
+        // log and throw any errors encountered during the post update process
+        console.error(`error liking post: ${error}`);
+        throw new Error(`liking post failed: ${error.message}`);
+      }
+    },
+    // remove a like from a post by userId
+    removePostLike: async (_, { postId, userId }) => {
+      try {
+        // find post by id
+        const post = await db.Post.findById(postId);
+        // remove userId from the likes array
+        post.likes = post.likes.filter(likeUserId => likeUserId.toString() !== userId);
+        // save the updated likes array to db
+        await post.save();
+        // return the updated post object
+        return post;
+      } catch (error) {
+        console.error(`error removing post like: ${error}`);
+        throw new Error(`removing post like failed: ${error.message}`);
+      }
+    },
+    deletePost: async (_, { postId }) => {
+      try {
+        // find a post by its id and delete it
+        const deletedPost = await db.Post.findByIdAndDelete(postId);
+        // if the post was not found, throw an error
+        if (!deletedPost) {
+          throw new Error('post not found');
+        }
+        // return the deleted post object
+        return deletedPost; 
+      } catch (error) {
+        // log and throw any errors encountered during the post deletion process
+        console.error(`error deleting post: ${error}`);
+        throw new Error(`deleting post failed: ${error.message}`);
       }
     },
   }

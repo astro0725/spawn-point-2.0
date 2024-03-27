@@ -4,7 +4,7 @@ const typeDefs = gql`
 type Query {
   gameById(id: ID!): Game
   allGames: [Game!]!
-  gameSort(page: Int, limit: Int, tag: String, keyword: String): [Game!]!
+  gameSort(page: Int, limit: Int, tags: String, keyword: String): [Game!]!
 
   userById(id: ID!): User
   allUsers: [User!]!
@@ -18,16 +18,19 @@ type Query {
 
   postById(id: ID!): Post
   allPosts: [Post!]!
-  postById(page: Int, limit: Int, tag: String, keyword: String): [Post!]!
+  postSort(page: Int, limit: Int, tags: String, keyword: String, game: Game): [Post!]!
 
   guideById(id: ID!): Guide
   allGuides: [Guide!]!
-  guideSort(page: Int, limit: Int, tag: String, keyword: String): [Guide!]!
+  guideSort(page: Int, limit: Int, tags: String, keyword: String, game: Game): [Guide!]!
 
   reactions(contentId: ID!, contentType: ContentType!): [Reaction!]!
 
   commentById(id: ID!): Comment
-  comments: [Comment!]!
+  allCommentsByGuide: [Comment!]!
+
+  replyById(id: ID!): Reply
+  allRepliesByPost: [Reply!]!
 }
 
 type Mutation {
@@ -52,13 +55,13 @@ type Mutation {
 
   createNotification(type: NotificationType!, message: String!, userId: ID!, relatedContentId: ID, onModel: String): Notification
 
-  createPost(content: String!, image: Upload,, authorId: ID!, tags: [String]): Post
+  createPost(content: String!, image: Upload, authorId: ID!, tags: [String], game: Game): Post
   editPost(postId: ID!, content: String!): Post
   likePost(postId: ID!, userId: ID!): Post
   removePostLike(postId: ID!, userId: ID!): Post
   deletePost(postId: ID!): Post
 
-  createGuide(content: String!, images: Upload, authorId: ID!, tags: [String]): Guide
+  createGuide(content: String!, images: Upload, authorId: ID!, tags: [String], game: Game): Guide
   editGuide(guideId: ID!, content: String!, image: Upload): Guide
   likeGuide(guideId: ID!, userId: ID!): Guide
   removeGuideLike(guideId: ID!, userId: ID!): Guide

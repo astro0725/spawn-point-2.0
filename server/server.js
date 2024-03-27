@@ -4,6 +4,7 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const { ApolloServer } = require('apollo-server-express');
 const { PubSub } = require('graphql-subscriptions');
+const { graphqlUploadExpress } = require('graphql-upload');
 const { createServer } = require('http');
 const { useServer } = require('graphql-ws/lib/use/ws');
 const { WebSocketServer } = require('ws')
@@ -22,8 +23,17 @@ const corsOptions = {
   optionsSuccessStatus: 204
 };
 
+// apply cors middleware with options
 app.use(cors(corsOptions));
+
+// apply json parsing middleware
 app.use(express.json());
+
+// apply auth middleware globally
+app.use(authMiddleware);
+
+// apply graphqlUploadExpress middleware for file uploads
+app.use(graphqlUploadExpress());
 
 // connect to mongodb using Mongoose
 mongoose.connect(process.env.DB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
@@ -35,12 +45,10 @@ mongoose.connect(process.env.DB_URI, { useNewUrlParser: true, useUnifiedTopology
 // initialize apollo pubSub for subs
 const pubsub = new PubSub();
 
-// apply auth middleware globally
-app.use(authMiddleware);
-
 // initialize apollo server with the schema and context
 const apolloServer = new ApolloServer({ 
   schema,
+  uploads: false,
   // set up the context for each operation
   context: ({ req, connection }) => {
     // check if the operation is a subscription
