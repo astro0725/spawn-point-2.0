@@ -23,7 +23,6 @@ const authMiddleware = function({ req, res, next }) {
   if (req.headers.authorization) {
     token = token.split(' ').pop().trim();
   }
-
   try {
     // decode the token
     const decoded = jwt.verify(token, secret);
