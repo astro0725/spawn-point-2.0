@@ -1,15 +1,16 @@
-const db = require('../models');
-const { signToken } = require('../utils/auth');
-const bcrypt = require('bcrypt');
-const saltRounds = 10;
 const  fs = require('fs');
 const path = require('path');
 const { promisify } = require('util');
 const unlinkAsync = promisify(fs.unlink);
+const bcrypt = require('bcrypt');
+const saltRounds = 10;
+const db = require('../models');
+const { signToken } = require('../utils/auth');
+const typeResolvers = require('./typeresolvers'); 
 
 const resolvers = {
   Query: {
-    // find user by id
+    // get user by id
     userById: async (_, { id }) => {
       try {
         // use mongoose model to find user by id
@@ -50,7 +51,7 @@ const resolvers = {
         console.log('error filtering users by search:' + error);
       }
     },
-    // find game by id
+    // get game by id
     gameById: async (_, { id }) => {
       try {
         // use mongoose model to find game by id
@@ -128,6 +129,7 @@ const resolvers = {
         if (keyword) {
           query.name = new RegExp(keyword, 'i');
         }
+        // if game is provided, create a regex query for name
         if (game) {
           query.game = new RegExp(game, 'i');
         }
@@ -137,6 +139,53 @@ const resolvers = {
       } catch (error) {
         // log error if there is a problem filtering posts
         console.log('error filtering posts by search:' + error);
+      }
+    },
+    // get guide by id
+    guideById: async (_, { id }) => {
+      try {
+        // use mongoose model to find guide by id
+        const guide = await db.Guide.findById(id);
+        return guide;
+      } catch (error) {
+        // log error if there is a problem finding the guide
+        console.log('error finding guide by id:' + error);
+      }
+    },
+    // get all guides
+    allGuides: async () => {
+      try {
+        // use mongoose model to find all guides
+        const guides = await db.Guide.find({});
+        return guides;
+      } catch (error) {
+        // log error if there is a problem fetching all guides
+        console.log('error fetching all guides:' + error);
+      }
+    },
+    // get all guides with pagination
+    guideSort: async (_, { page = 1, limit = 10, tags, keyword, game }) => {
+      try {
+        // initial empty query object
+        const query = {};
+        // if tags is provided, add to query
+        if (tags) {
+          query.tags = tags;
+        }
+        // if keyword is provided, create a regex query for name
+        if (keyword) {
+          query.name = new RegExp(keyword, 'i');
+        }
+        // if game is provided, create a regex query for name
+        if (game) {
+          query.game = new RegExp(game, 'i');
+        }
+        // use mongoose model to find guides based on query
+        const guides = await db.Guide.find(query);
+        return guides;
+      } catch (error) {
+        // log error if there is a problem filtering guides
+        console.log('error filtering guides by search:' + error);
       }
     },
   },
@@ -371,7 +420,7 @@ const resolvers = {
         // create a new post object
         const newPost = new db.Post({
           content,
-          image: imageUrl, 
+          image: imageUrl ? [imageUrl] : [],
           author: authorId,
           tags,
           game: gameDocument ? gameDocument._id : undefined,
@@ -455,6 +504,170 @@ const resolvers = {
         throw new Error(`deleting post failed: ${error.message}`);
       }
     },
+    createGuide: async (_, { content, images, authorId, tags, game }) => {
+      try {
+        // validate author
+        const authorExists = await db.User.findById(authorId);
+        if (!authorExists) throw new Error('Author not found');
+        // validate game if provided
+        let gameDocument = null;
+        if (game) {
+          gameDocument = await db.Game.findById(game);
+          if (!gameDocument) throw new Error('Game not found');
+        }
+        // handle image upload
+        let imageUrl = null;
+        if (images) {
+          const { createReadStream, filename } = await images;
+          const stream = createReadStream();
+          const pathName = path.join(__dirname, `/uploads/${filename}`);
+          await new Promise((resolve, reject) => {
+            const writeStream = fs.createWriteStream(pathName);
+            stream.pipe(writeStream);
+            writeStream.on('finish', resolve);
+            writeStream.on('error', (error) => {
+              fs.unlink(pathName, () => reject(error));
+            });
+          });
+          imageUrl = `http://yourserver.com/uploads/${filename}`;
+        }
+        // Create and save the guide
+        const newGuide = new db.Guide({
+          content,
+          images: imageUrl ? [imageUrl] : [],
+          author: authorId,
+          tags,
+          game: gameDocument ? gameDocument._id : null,
+        });
+        await newGuide.save();
+        return newGuide;
+      } catch (error) {
+        console.error(`Error creating guide: ${error}`);
+        throw new Error(`Error creating guide: ${error.message}`);
+      }
+    },
+    editGuide: async (_, { guideId, content, images }) => {
+      try {
+        // initialize variable for potential new image URL
+        let imageUrl;
+        // handle image upload if an image is provided
+        if (images) {
+          const { createReadStream, filename } = await images;
+          const stream = createReadStream();
+          const pathName = path.join(__dirname, `/uploads/${filename}`);
+          // attempt to write the uploaded file to the server
+          await new Promise((resolve, reject) => {
+            const writeStream = fs.createWriteStream(pathName);
+            stream.pipe(writeStream);
+            writeStream.on('finish', resolve);
+            writeStream.on('error', (error) => {
+              // Attempt to remove the file if an error occurs during file write
+              fs.unlink(pathName, () => reject(error));
+            });
+          });
+          // construct the URL for the uploaded image
+          imageUrl = `http://yourserver.com/uploads/${filename}`;
+        }
+        // if an image was uploaded, include it in the update, otherwise, skip updating the images field
+        const update = images ? { content, images: imageUrl ? [imageUrl] : [] } : { content };
+        // find the guide by its ID and apply the update
+        const updatedGuide = await db.Guide.findByIdAndUpdate(guideId, update, { new: true });
+        // if the guide was not found, throw an error
+        if (!updatedGuide) {
+          throw new Error('Guide not found');
+        }
+        // Return the updated guide object
+        return updatedGuide;
+      } catch (error) {
+        // log and throw any errors encountered during the guide update process
+        console.error(`Error editing guide: ${error}`);
+        throw new Error(`Editing guide failed: ${error.message}`);
+      }
+    },
+    // delete a guide by its guideId
+    deleteGuide: async (_, { guideId }) => {
+      try {
+        // find a guide by its id and delete it
+        const deletedGuide = await db.Guide.findByIdAndDelete(guideId);
+        // if the guide was not found, throw an error
+        if (!deletedGuide) {
+          throw new Error('Guide not found');
+        }
+        // return the deleted guide object
+        return deletedGuide;
+      } catch (error) {
+        // log and throw any errors encountered during the guide deletion process
+        console.error(`Error deleting guide: ${error}`);
+        throw new Error(`Deleting guide failed: ${error.message}`);
+      }
+    },
+    // like a guide by adding userId to the guide's likes
+    likeGuide: async (_, { guideId, userId }) => {
+      try {
+        // find a guide by its id and add userId to the likes array
+        const guide = await db.Guide.findById(guideId);
+        if (!guide.likes.includes(userId)) {
+          guide.likes.push(userId);
+          await guide.save();
+        }
+        // return the updated guide object
+        return guide;
+      } catch (error) {
+        // log and throw any errors encountered during the guide update process
+        console.error(`Error liking guide: ${error}`);
+        throw new Error(`Liking guide failed: ${error.message}`);
+      }
+    },
+    // remove a like from a guide by userId
+    removeGuideLike: async (_, { guideId, userId }) => {
+      try {
+        // find guide by id
+        const guide = await db.Guide.findById(guideId);
+        // remove userId from the likes array
+        guide.likes = guide.likes.filter(likeUserId => likeUserId.toString() !== userId);
+        // save the updated likes array to db
+        await guide.save();
+        // return the updated guide object
+        return guide;
+      } catch (error) {
+        console.error(`Error removing guide like: ${error}`);
+        throw new Error(`Removing guide like failed: ${error.message}`);
+      }
+    },
+    // dislike a guide by adding user to guide's dislikes
+    dislikeGuide: async (_, { guideId, userId }) => {
+      try {
+        // find a guide by its id and add userId to the dislikes array
+        const guide = await db.Guide.findById(guideId);
+        if (!guide.dislikes.includes(userId)) {
+          guide.dislikes.push(userId);
+          await guide.save();
+        }
+        // return the updated guide object
+        return guide;
+      } catch (error) {
+        // log and throw any errors encountered during the guide update process
+        console.error(`Error disliking guide: ${error}`);
+        throw new Error(`Disliking guide failed: ${error.message}`);
+      }
+    },
+    // remove a dislike from a guide by userId
+    removedGuideDislike: async (_, { guideId, userId }) => {
+      try {
+        // find guide by id
+        const guide = await db.Guide.findById(guideId);
+        // remove userId from the dislikes array
+        guide.dislikes = guide.dislikes.filter(dislikeUserId => dislikeUserId.toString() !== userId);
+        // save the updated dislikes array to db
+        await guide.save();
+        // return the updated guide object
+        return guide;
+      } catch (error) {
+        console.error(`Error removing guide dislike: ${error}`);
+        throw new Error(`Removing guide dislike failed: ${error.message}`);
+      }
+    },
+    ...typeResolvers,
   }
 };
 

@@ -62,7 +62,7 @@ type Mutation {
   deletePost(postId: ID!): Post
 
   createGuide(content: String!, images: Upload, authorId: ID!, tags: [String], game: Game): Guide
-  editGuide(guideId: ID!, content: String!, image: Upload): Guide
+  editGuide(guideId: ID!, content: String!, images: Upload): Guide
   likeGuide(guideId: ID!, userId: ID!): Guide
   removeGuideLike(guideId: ID!, userId: ID!): Guide
   dislikeGuide(guideId: ID!, userId: ID!): Guide
