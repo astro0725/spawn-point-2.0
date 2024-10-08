@@ -4,6 +4,7 @@ const typeDefs = gql`
 type Query {
   gameById(id: ID!): Game
   allGames: [Game!]!
+  gameSort(page: Int, limit: Int, tag: String, keyword: String): [Game!]!
 
   userById(id: ID!): User
   allUsers: [User!]!
@@ -34,11 +35,14 @@ type Mutation {
   updateGame(id: ID!, title: String, splashArt: String): Game
   deleteGame(id: ID!): Game
 
-  createUser(username: String!, password: String!, email: String!): User
+  reateUser(username: String!, password: String!, email: String!): AuthPayload
   updateProfileImage(userId: ID!, newImage: Upload!): User
   followUser(userId: ID!, followUserId: ID!): User
   unfollowUser(userId: ID!, unfollowUserId: ID!): User
-  deleteUser(id: ID!): User
+  deleteUser(id: ID!): ResponseMessage
+  changeEmail(userId: ID!, newEmail: String!): ResponseMessage
+  changeUsername(userId: ID!, newUsername: String!): ResponseMessage
+  changePassword(userId: ID!, oldPassword: String!, newPassword: String!): ResponseMessage
 
   updateConnections(userId: ID!, steamId: String, playstationId: String, riotId: String, xboxId: String, battlenetId: String, epicGamesId: String): Connections
 
@@ -65,6 +69,16 @@ type Mutation {
 
   addReaction(contentId: ID!, contentType: ContentType!, userId: ID!, emoji: String!): Reaction
   removeReaction(contentId: ID!, contentType: ContentType!, userId: ID!, emoji: String!): Reaction
+}
+
+type AuthPayload {
+  token: String!
+  user: User!
+}
+
+type ResponseMessage {
+  success: Boolean!
+  message: String!
 }
 
 type Subscription {
@@ -95,7 +109,8 @@ type Game {
   title: String!
   splashArt: String!
   createdAt: String!
-  updatedAt: String!
+  updatedAt: String
+  users: [User!]
 }
 
 type User {
@@ -106,21 +121,20 @@ type User {
   profileImage: String
   name: String
   bio: String
-  posts: [Post!]!
-  guides: [Guide!]!
-  chatrooms: [Chatroom!]!
+  posts: [Post!]
+  guides: [Guide!]
   profileHeader: String
-  showcases: [Showcase!]!
-  following: [User!]!
-  followers: [User!]!
-  blockedUsers: [User!]!
-  friends: [User!]!
-  postCount: Int!
-  guideCount: Int!
-  blockedCount: Int!
-  followingCount: Int!
-  followerCount: Int!
-  friendCount: Int!
+  showcases: [Showcase!]
+  following: [User!]
+  followers: [User!]
+  blockedUsers: [User!]
+  friends: [User!]
+  postCount: [Int!]
+  guideCount: [Int!]
+  blockedCount: [Int!]
+  followingCount: [Int!]
+  followerCount: [Int!]
+  friendCount: [Int!]
 }
 
 type Connections {
@@ -149,9 +163,9 @@ type Socials {
 type Showcase {
   id: ID!
   userId: User!
-  games: [Game!]!
-  socials: [Socials!]!
-  connections: [Connection!]!
+  games: [Game!]
+  socials: [Socials!]
+  connections: [Connection!]
   isVisible: Boolean!
   createdAt: String!
   updatedAt: String!
@@ -174,13 +188,14 @@ type Post {
   content: String!
   image: [Image!]
   author: User!
-  likes: [User!]!
-  reply: [Reply!]!
-  reactions: [Reaction!]!
-  tags: [String!]!
+  likes: [User!]
+  reply: [Reply!]
+  reactions: [Reaction!]
+  tags: [String!]
   createdAt: String!
   updatedAt: String!
-  replyCount: Int!
+  replyCount: [Int!]
+  game: [Game!]
 }
 
 type Guide {
@@ -195,7 +210,8 @@ type Guide {
   tags: [String!]!
   createdAt: String!
   updatedAt: String!
-  commentCount: Int!
+  commentCount: [Int!]
+  game: [Game!]
 }
 
 type Image {

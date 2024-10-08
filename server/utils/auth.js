@@ -2,35 +2,38 @@ require('dotenv').config();
 const jwt = require('jsonwebtoken');
 
 const secret = process.env.JWT_SECRET;
-const expiration = '1h';
+const expiration = '1h'; 
+
+const signToken = function({ email, username, _id }) {
+  const payload = {
+    email,
+    username,
+    _id,
+  };
+  // sign the token with the payload
+  return jwt.sign({ data: payload }, secret, { expiresIn: expiration });
+};
 const authMiddleware = function({ req, res, next }) {
   let token = req.body.token || req.query.token || req.headers.authorization;
-
+  // check for the presence of a token
   if (!token) {
-    return next(); 
+    return next();
   }
-
+  // extract the token from the authorization header if present
   if (req.headers.authorization) {
     token = token.split(' ').pop().trim();
   }
-
   try {
-    const decoded = jwt.verify(token, secret); 
-    req.user = decoded.data; 
+    // decode the token
+    const decoded = jwt.verify(token, secret);
+    req.user = decoded.data; // assign the decoded data to req.user
+    // proceed with the next middleware
     next();
   } catch (err) {
-    console.log(`Invalid token, error: ${err}`);
-    res.status(401).send('Invalid token'); 
+    console.error(`Invalid token, error: ${err}`);
+    res.status(401).send('Invalid token');
   }
 };
-
-const signToken = function({ email, name, _id }) {
-  return jwt.sign(
-    { data: { email, name, _id }}, 
-    secret, 
-    { expiresIn: expiration }
-    );
-}
 
 module.exports = {
   authMiddleware,
